@@ -31,4 +31,4 @@ Initial public release.
 
 ### Fixed
 
-- Re-sign the finished `.app` bundle during packaging so DMG installs do not fail Gatekeeper with a damaged-app error
+- Fix a startup crash in bundled `.app` releases caused by requesting notification authorization from the wrong execution context

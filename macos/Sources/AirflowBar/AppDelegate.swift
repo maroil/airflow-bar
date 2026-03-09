@@ -122,8 +122,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         let center = UNUserNotificationCenter.current()
         center.delegate = self
-        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            if let error {
+        Task {
+            do {
+                _ = try await center.requestAuthorization(options: [.alert, .sound, .badge])
+            } catch {
                 print("Notification authorization error: \(error.localizedDescription)")
             }
         }
