@@ -1,0 +1,27 @@
+#!/bin/sh
+set -eu
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+echo "pre-commit: running macOS build"
+(
+  cd "$REPO_ROOT/macos"
+  swift build
+)
+
+echo "pre-commit: running macOS tests"
+(
+  cd "$REPO_ROOT/macos"
+  swift test
+)
+
+if [ ! -d "$REPO_ROOT/website/node_modules" ]; then
+  echo "pre-commit: website dependencies are missing; run 'cd website && npm ci'" >&2
+  exit 1
+fi
+
+echo "pre-commit: running website build"
+(
+  cd "$REPO_ROOT/website"
+  npm run build
+)

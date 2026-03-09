@@ -1,0 +1,21 @@
+#!/bin/sh
+set -eu
+
+MESSAGE_FILE=$1
+FIRST_LINE=$(head -n 1 "$MESSAGE_FILE")
+
+case "$FIRST_LINE" in
+  Merge\ *|Revert\ *)
+    exit 0
+    ;;
+esac
+
+PATTERN='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([A-Za-z0-9._/-]+\))?!?: .+'
+
+if printf '%s\n' "$FIRST_LINE" | grep -Eq "$PATTERN"; then
+  exit 0
+fi
+
+echo "commit-msg: use a conventional commit prefix such as 'feat:', 'fix:', or 'chore:'" >&2
+echo "commit-msg: allowed types are build, chore, ci, docs, feat, fix, perf, refactor, revert, style, and test" >&2
+exit 1

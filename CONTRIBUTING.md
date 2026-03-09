@@ -11,6 +11,17 @@ Thanks for your interest in contributing! Here's how to get started.
 
 ## Development Setup
 
+Install the Git hooks after cloning:
+
+```bash
+./scripts/install-git-hooks.sh
+```
+
+This enables:
+
+- Conventional commit message validation (`feat:`, `fix:`, `chore:`, etc.)
+- Pre-commit checks aligned with CI: `swift build`, `swift test`, and `npm run build`
+
 A local Airflow instance makes development easier:
 
 ```bash

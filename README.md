@@ -85,6 +85,20 @@ Configuration is stored at `~/.airflowbar/config.json`. Credentials are encrypte
 
 ## Development
 
+### Git Hooks
+
+Install the repo-managed Git hooks once after cloning:
+
+```bash
+./scripts/install-git-hooks.sh
+```
+
+The hooks enforce conventional commit prefixes such as `feat:`, `fix:`, and `chore:`. They also run the same checks gated by CI before each commit:
+
+- `cd macos && swift build`
+- `cd macos && swift test`
+- `cd website && npm run build`
+
 ### Prerequisites
 
 - macOS 14+ (Sonoma)
@@ -97,6 +111,14 @@ cd macos
 make build    # swift build
 make test     # swift test
 make run      # swift run AirflowBar
+```
+
+For website changes, install dependencies once and build locally with:
+
+```bash
+cd website
+npm ci
+npm run build
 ```
 
 Run a single test suite:
