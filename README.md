@@ -25,7 +25,7 @@ A macOS menu bar app for monitoring Apache Airflow DAGs.
 
 ### Download
 
-Download `AirflowBar.app` from the [latest GitHub Release](https://github.com/maroil/airflow-bar/releases/latest).
+Download `AirflowBar.app` from the [GitHub Releases page](https://github.com/maroil/airflow-bar/releases) once a public build is published.
 
 > **Note**: The initial OSS release is intentionally unsigned and not notarized. On first launch, right-click the app and select "Open" to bypass Gatekeeper.
 
