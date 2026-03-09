@@ -18,6 +18,7 @@ public struct AppConfig: Codable, Sendable {
     public var dagFilter: String?
     public var maxRunsPerDAG: Int
     public var notifications: NotificationSettings
+    public var checkForUpdates: Bool
 
     public init(
         version: Int = ConfigMigrator.currentVersion,
@@ -26,7 +27,8 @@ public struct AppConfig: Codable, Sendable {
         showPausedDAGs: Bool = false,
         dagFilter: String? = nil,
         maxRunsPerDAG: Int = 5,
-        notifications: NotificationSettings = NotificationSettings()
+        notifications: NotificationSettings = NotificationSettings(),
+        checkForUpdates: Bool = true
     ) {
         self.version = version
         self.environments = environments
@@ -35,6 +37,7 @@ public struct AppConfig: Codable, Sendable {
         self.dagFilter = dagFilter
         self.maxRunsPerDAG = maxRunsPerDAG
         self.notifications = notifications
+        self.checkForUpdates = checkForUpdates
     }
 
     public init(from decoder: Decoder) throws {
@@ -46,6 +49,7 @@ public struct AppConfig: Codable, Sendable {
         self.dagFilter = try container.decodeIfPresent(String.self, forKey: .dagFilter)
         self.maxRunsPerDAG = try container.decodeIfPresent(Int.self, forKey: .maxRunsPerDAG) ?? 5
         self.notifications = try container.decodeIfPresent(NotificationSettings.self, forKey: .notifications) ?? NotificationSettings()
+        self.checkForUpdates = try container.decodeIfPresent(Bool.self, forKey: .checkForUpdates) ?? true
     }
 
     public static let `default` = AppConfig()

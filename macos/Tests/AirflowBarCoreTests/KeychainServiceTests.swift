@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import AirflowBarCore
 
-@Suite("Keychain Service Tests")
+@Suite("Keychain Service Tests", .serialized)
 struct KeychainServiceTests {
     @Test("Save and load credential roundtrip")
     func saveLoadRoundtrip() throws {

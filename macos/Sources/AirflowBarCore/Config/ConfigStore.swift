@@ -8,7 +8,7 @@ public final class ConfigStore: @unchecked Sendable {
     private static let configFile = configDirectory.appendingPathComponent("config.json")
     private static let logger = Logger(subsystem: "com.airflowbar", category: "config")
 
-    public private(set) var config: AppConfig
+    public var config: AppConfig
 
     public init() {
         self.config = Self.loadConfig()

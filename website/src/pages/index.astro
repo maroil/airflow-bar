@@ -1,5 +1,4 @@
 ---
-import PopoverMock from '../components/PopoverMock.astro';
 ---
 
 <html lang="en">
@@ -32,6 +31,13 @@ import PopoverMock from '../components/PopoverMock.astro';
     .meta a { color: #52525b; text-decoration: none; transition: color 0.2s; }
     .meta a:hover { color: #a1a1aa; }
     .popover-wrap { animation: popIn 0.6s ease 0.2s both; }
+    .hero-screenshot {
+      width: 380px;
+      border-radius: 12px;
+      box-shadow:
+        0 25px 60px rgba(0,0,0,0.5),
+        0 0 0 0.5px rgba(255,255,255,0.08);
+    }
     @keyframes fadeSlide { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
     @keyframes popIn { from { opacity: 0; transform: translateY(12px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
     @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.85); } }
@@ -55,7 +61,9 @@ import PopoverMock from '../components/PopoverMock.astro';
       </div>
       <div class="meta"><span>macOS 14+</span><span>Native Swift</span><a href="https://github.com/maroil/airflow-bar/blob/main/LICENSE">MIT</a></div>
     </div>
-    <div class="popover-wrap"><PopoverMock /></div>
+    <div class="popover-wrap">
+      <img src="/screenshot-popover.png" alt="AirflowBar popover showing DAG statuses" class="hero-screenshot" />
+    </div>
   </div>
   <script>
     const canvas = document.getElementById('radar');

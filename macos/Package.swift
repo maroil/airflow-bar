@@ -18,7 +18,8 @@ let package = Package(
             name: "AirflowBar",
             dependencies: ["AirflowBarCore"],
             path: "Sources/AirflowBar",
-            exclude: ["Info.plist"]
+            exclude: ["Info.plist"],
+            resources: [.copy("Resources/AppIcon.icns")]
         ),
         .testTarget(
             name: "AirflowBarCoreTests",

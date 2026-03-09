@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private var statusItemController: StatusItemController!
     private var viewModel: DAGStatusViewModel!
     private var configStore: ConfigStore!
+    private var updateViewModel: UpdateCheckViewModel!
     private var settingsWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -19,10 +20,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         configStore = ConfigStore()
         viewModel = DAGStatusViewModel(configStore: configStore)
+        updateViewModel = UpdateCheckViewModel(configStore: configStore)
 
         let popoverView = PopoverContent(
             viewModel: viewModel,
             configStore: configStore,
+            updateViewModel: updateViewModel,
             onOpenSettings: { [weak self] in self?.openSettings() },
             onRefresh: { [weak self] in
                 Task { @MainActor in await self?.viewModel.refresh() }
@@ -43,8 +46,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             )
         }
 
+        // Screenshot mode: populate with mock data and skip polling
+        if ScreenshotMode.isEnabled {
+            ScreenshotMode.configure(viewModel: viewModel, configStore: configStore)
+            statusItemController.updateBadge(
+                failedCount: viewModel.failedCount,
+                runningCount: viewModel.runningCount,
+                isDisconnected: false
+            )
+            // Auto-open the panel for easy screenshotting
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(300))
+                self?.statusItemController.openPanel()
+            }
+            return
+        }
+
         // Start polling
         viewModel.startPolling()
+
+        // Check for app updates
+        updateViewModel.checkIfNeeded()
 
         // Auto-open settings on first launch if no environment configured
         if !configStore.hasEnvironments {
@@ -65,7 +87,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return
         }
 
-        let settingsView = SettingsView(configStore: configStore, onSave: { [weak self] in
+        let settingsView = SettingsView(configStore: configStore, updateViewModel: updateViewModel, onSave: { [weak self] in
             guard let self else { return }
             self.viewModel.stopPolling()
             self.viewModel.startPolling()

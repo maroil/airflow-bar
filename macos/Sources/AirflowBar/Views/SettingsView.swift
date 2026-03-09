@@ -77,6 +77,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
 
 struct SettingsView: View {
     let configStore: ConfigStore
+    let updateViewModel: UpdateCheckViewModel
     let onSave: () -> Void
 
     @State private var selectedSection: SettingsSection = .general
@@ -87,6 +88,7 @@ struct SettingsView: View {
     @State private var dagFilter: String = ""
     @State private var notifyOnFailure: Bool = true
     @State private var notifyOnRecovery: Bool = true
+    @State private var checkForUpdates: Bool = true
     @State private var saveError: String?
     @State private var urlValidationError: String?
     @State private var regexValidationError: String?
@@ -168,6 +170,46 @@ struct SettingsView: View {
                 Text("How often to poll all environments for updates.")
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
+            }
+
+            settingsCard {
+                HStack {
+                    Toggle(isOn: $checkForUpdates) {
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("Check for updates automatically")
+                                .font(.system(size: 12))
+                            Text("Checks GitHub once per day for new releases")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+
+                    Spacer()
+
+                    if updateViewModel.isChecking {
+                        ProgressView()
+                            .controlSize(.small)
+                            .scaleEffect(0.7)
+                    } else if updateViewModel.hasUpdate, let update = updateViewModel.availableUpdate {
+                        Button {
+                            updateViewModel.openReleasePage()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.down.circle.fill")
+                                    .font(.system(size: 9))
+                                Text(update.tagName)
+                                    .font(.system(size: 10, weight: .medium))
+                            }
+                            .foregroundStyle(Color(.systemBlue))
+                        }
+                        .buttonStyle(.borderless)
+                    } else {
+                        Button("Check Now") {
+                            updateViewModel.checkNow()
+                        }
+                        .controlSize(.small)
+                    }
+                }
             }
         }
     }
@@ -540,6 +582,7 @@ struct SettingsView: View {
         dagFilter = config.dagFilter ?? ""
         notifyOnFailure = config.notifications.onFailure
         notifyOnRecovery = config.notifications.onRecovery
+        checkForUpdates = config.checkForUpdates
 
         if config.environments.isEmpty {
             let env = EditableEnvironment()
@@ -640,7 +683,8 @@ struct SettingsView: View {
             dagFilter: dagFilter.isEmpty ? nil : dagFilter,
             notifications: NotificationSettings(
                 onFailure: notifyOnFailure, onRecovery: notifyOnRecovery
-            )
+            ),
+            checkForUpdates: checkForUpdates
         )
 
         do {

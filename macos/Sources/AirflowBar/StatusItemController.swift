@@ -21,7 +21,9 @@ final class StatusItemController {
         panelContent = popoverContent
 
         if let button = statusItem.button {
-            button.image = makeTemplateImage(symbolName: "wind")
+            let icon = NSImage(systemSymbolName: "wind", accessibilityDescription: "AirflowBar")
+            icon?.isTemplate = true
+            button.image = icon
             button.imagePosition = .imageLeading
             button.target = self
             button.action = #selector(togglePanel(_:))
@@ -103,62 +105,42 @@ final class StatusItemController {
     func updateBadge(failedCount: Int, runningCount: Int, isDisconnected: Bool) {
         guard let button = statusItem.button else { return }
 
-        // Reset state
         button.appearsDisabled = false
-        button.contentTintColor = nil
-        button.title = ""
 
         if isDisconnected {
-            button.image = makeTemplateImage(symbolName: "wind")
+            button.image = makeIcon(color: nil)
             button.appearsDisabled = true
             button.attributedTitle = NSAttributedString()
         } else if failedCount > 0 {
-            button.image = makeColoredImage(
-                symbolName: "exclamationmark.triangle.fill",
-                color: .systemRed,
-                accessibilityDescription: "AirflowBar - \(failedCount) failed"
-            )
+            button.image = makeIcon(color: .systemRed)
             button.attributedTitle = makeBadgeTitle("\(failedCount)", color: .systemRed)
         } else if runningCount > 0 {
-            button.image = makeColoredImage(
-                symbolName: "wind",
-                color: .controlAccentColor,
-                accessibilityDescription: "AirflowBar - \(runningCount) running"
-            )
+            button.image = makeIcon(color: nil)
             button.attributedTitle = makeBadgeTitle("\(runningCount)", color: .secondaryLabelColor)
         } else {
-            button.image = makeTemplateImage(symbolName: "wind")
+            button.image = makeIcon(color: nil)
             button.attributedTitle = NSAttributedString()
         }
     }
 
-    // MARK: - Image helpers
+    // MARK: - Helpers
 
-    private func makeTemplateImage(symbolName: String) -> NSImage? {
-        let image = NSImage(
-            systemSymbolName: symbolName,
-            accessibilityDescription: "AirflowBar"
-        )
-        image?.isTemplate = true
-        return image
-    }
-
-    private func makeColoredImage(
-        symbolName: String,
-        color: NSColor,
-        accessibilityDescription: String
-    ) -> NSImage? {
+    private func makeIcon(color: NSColor?) -> NSImage? {
         guard let symbol = NSImage(
-            systemSymbolName: symbolName,
-            accessibilityDescription: accessibilityDescription
+            systemSymbolName: "wind",
+            accessibilityDescription: "AirflowBar"
         ) else { return nil }
 
-        let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .medium)
-            .applying(.init(paletteColors: [color]))
+        if let color {
+            let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .medium)
+                .applying(.init(paletteColors: [color]))
+            let colored = symbol.withSymbolConfiguration(config)
+            colored?.isTemplate = false
+            return colored
+        }
 
-        let configured = symbol.withSymbolConfiguration(config)
-        configured?.isTemplate = false
-        return configured
+        symbol.isTemplate = true
+        return symbol
     }
 
     private func makeBadgeTitle(_ text: String, color: NSColor) -> NSAttributedString {

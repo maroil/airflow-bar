@@ -4,8 +4,11 @@ import AirflowBarCore
 struct PopoverContent: View {
     let viewModel: DAGStatusViewModel
     let configStore: ConfigStore
+    let updateViewModel: UpdateCheckViewModel
     let onOpenSettings: () -> Void
     let onRefresh: () -> Void
+
+    @State private var showQuitConfirmation = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -14,15 +17,12 @@ struct PopoverContent: View {
             // Environment tab bar (hidden if only 1 environment)
             if configStore.config.enabledEnvironments.count > 1 {
                 environmentTabBar
-                Divider().opacity(0.5)
             }
+
+            Divider().opacity(0.3)
 
             if let error = viewModel.error {
                 errorBanner(error)
-            }
-
-            if !viewModel.dagStatuses.isEmpty {
-                summaryStrip
             }
 
             FilterBar(
@@ -62,41 +62,91 @@ struct PopoverContent: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: 10) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(.linearGradient(
-                        colors: [.blue.opacity(0.7), .cyan.opacity(0.6)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ))
-                    .frame(width: 30, height: 30)
-                Image(systemName: "wind")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.white)
+        VStack(spacing: 8) {
+            // Counters row
+            HStack(spacing: 0) {
+                counterCard(
+                    count: viewModel.failedCount,
+                    label: "Failed",
+                    icon: "xmark.circle.fill",
+                    color: Color(.systemRed)
+                )
+                counterCard(
+                    count: viewModel.runningCount,
+                    label: "Running",
+                    icon: "arrow.triangle.2.circlepath",
+                    color: Color(.systemBlue)
+                )
+                counterCard(
+                    count: viewModel.successCount,
+                    label: "Success",
+                    icon: "checkmark.circle.fill",
+                    color: Color(.systemGreen)
+                )
+                counterCard(
+                    count: viewModel.queuedCount,
+                    label: "Queued",
+                    icon: "clock.fill",
+                    color: Color(.systemOrange)
+                )
             }
 
-            VStack(alignment: .leading, spacing: 1) {
-                Text("AirflowBar")
-                    .font(.system(size: 13, weight: .semibold))
+            // Status row: health + total + last refresh
+            HStack(spacing: 6) {
+                if let health = viewModel.currentHealthInfo {
+                    Circle()
+                        .fill(health.isHealthy ? Color(.systemGreen) : Color(.systemRed))
+                        .frame(width: 6, height: 6)
+                    Text(health.isHealthy ? "Healthy" : "Unhealthy")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(health.isHealthy ? Color(.systemGreen) : Color(.systemRed))
+                }
+
+                Text("·")
+                    .foregroundStyle(.quaternary)
+                    .font(.system(size: 10))
+
+                Text("\(viewModel.totalCount) DAGs")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.tertiary)
+
+                Spacer()
+
                 if let lastRefreshed = viewModel.lastRefreshed {
                     Text(lastRefreshed, style: .relative)
                         .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.quaternary)
                     + Text(" ago")
                         .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.quaternary)
                 }
             }
-
-            Spacer()
-
-            if let health = viewModel.currentHealthInfo {
-                healthBadge(health)
-            }
+            .padding(.horizontal, 2)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(viewModel.failedCount) failed, \(viewModel.runningCount) running, \(viewModel.successCount) success, \(viewModel.totalCount) total DAGs")
+    }
+
+    private func counterCard(count: Int, label: String, icon: String, color: Color) -> some View {
+        let isActive = count > 0
+        return VStack(spacing: 3) {
+            Text("\(count)")
+                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .foregroundStyle(isActive ? AnyShapeStyle(color) : AnyShapeStyle(.tertiary))
+            HStack(spacing: 3) {
+                Image(systemName: icon)
+                    .font(.system(size: 8))
+                Text(label)
+                    .font(.system(size: 9, weight: .medium))
+            }
+            .foregroundStyle(isActive ? AnyShapeStyle(color.opacity(0.7)) : AnyShapeStyle(.quaternary))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 6)
+        .accessibilityLabel("\(count) \(label)")
     }
 
     // MARK: - Environment Tab Bar
@@ -147,50 +197,6 @@ struct PopoverContent: View {
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
-    private func healthBadge(_ health: HealthInfo) -> some View {
-        HStack(spacing: 5) {
-            Image(systemName: health.isHealthy ? "checkmark.circle.fill" : "xmark.circle.fill")
-                .font(.system(size: 10))
-            Text(health.isHealthy ? "Healthy" : "Unhealthy")
-                .font(.system(size: 10, weight: .medium))
-        }
-        .foregroundStyle(health.isHealthy ? Color(.systemGreen) : Color(.systemRed))
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background((health.isHealthy ? Color(.systemGreen) : Color(.systemRed)).opacity(0.1))
-        .clipShape(Capsule())
-        .accessibilityLabel(health.isHealthy ? "Airflow is healthy" : "Airflow is unhealthy")
-    }
-
-    // MARK: - Summary Strip
-
-    private var summaryStrip: some View {
-        HStack(spacing: 12) {
-            summaryPill(count: viewModel.failedCount, label: "Failed", color: Color(.systemRed), icon: "xmark.circle.fill")
-            summaryPill(count: viewModel.runningCount, label: "Running", color: Color(.systemBlue), icon: "arrow.triangle.2.circlepath")
-            summaryPill(count: viewModel.successCount, label: "Success", color: Color(.systemGreen), icon: "checkmark.circle.fill")
-            Spacer()
-            Text("\(viewModel.totalCount) DAGs")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.tertiary)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 6)
-        .background(Color.primary.opacity(0.02))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(viewModel.failedCount) failed, \(viewModel.runningCount) running, \(viewModel.successCount) success, \(viewModel.totalCount) total DAGs")
-    }
-
-    private func summaryPill(count: Int, label: String, color: Color, icon: String) -> some View {
-        HStack(spacing: 3) {
-            Image(systemName: icon)
-                .font(.system(size: 8))
-            Text("\(count)")
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
-        }
-        .foregroundStyle(count > 0 ? color : DAGColor.zeroCount())
-        .accessibilityLabel("\(count) \(label)")
-    }
 
     // MARK: - Error Banner
 
@@ -262,6 +268,31 @@ struct PopoverContent: View {
 
                 Spacer()
 
+                if updateViewModel.hasUpdate, let update = updateViewModel.availableUpdate {
+                    Button {
+                        updateViewModel.openReleasePage()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.down.circle.fill")
+                                .font(.system(size: 9))
+                            Text(update.tagName)
+                                .font(.system(size: 10, weight: .medium))
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color(.systemBlue).opacity(0.15))
+                        .foregroundStyle(Color(.systemBlue))
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(.borderless)
+                    .contextMenu {
+                        Button("Dismiss this update") {
+                            updateViewModel.dismissCurrentUpdate()
+                        }
+                    }
+                    .help("Update available — click to open release page")
+                }
+
                 HStack(spacing: 2) {
                     Button(action: onRefresh) {
                         Image(systemName: "arrow.clockwise")
@@ -280,8 +311,32 @@ struct PopoverContent: View {
                     }
                     .buttonStyle(.borderless)
                     .accessibilityLabel("Settings")
+
+                    Divider()
+                        .frame(height: 12)
+                        .opacity(0.3)
+                        .padding(.horizontal, 2)
+
+                    Button {
+                        showQuitConfirmation = true
+                    } label: {
+                        Image(systemName: "power")
+                            .font(.system(size: 11))
+                            .frame(width: 24, height: 24)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel("Quit AirflowBar")
                 }
                 .foregroundStyle(.secondary)
+                .alert("Quit AirflowBar?", isPresented: $showQuitConfirmation) {
+                    Button("Cancel", role: .cancel) { }
+                    Button("Quit", role: .destructive) {
+                        NSApplication.shared.terminate(nil)
+                    }
+                } message: {
+                    Text("AirflowBar will stop monitoring your DAGs and close completely.")
+                }
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)

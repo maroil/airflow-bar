@@ -1,5 +1,5 @@
 import Foundation
-import Security
+import CryptoKit
 import os
 
 public enum KeychainError: Error, Sendable {
@@ -8,76 +8,123 @@ public enum KeychainError: Error, Sendable {
     case deleteFailed(OSStatus)
     case updateFailed(OSStatus)
     case dataConversionFailed
+    case keychainCreationFailed(OSStatus)
 }
 
+/// Stores credentials in an encrypted file at ~/.airflowbar/credentials.enc
+/// using CryptoKit (AES-GCM). Avoids macOS Keychain prompts for unsigned builds.
 public struct KeychainService: Sendable {
-    private static let service = "com.airflowbar.credentials"
-    private static let logger = Logger(subsystem: "com.airflowbar", category: "keychain")
+    private static let logger = Logger(subsystem: "com.airflowbar", category: "credentials")
+    private static let storeQueue = DispatchQueue(label: "com.airflowbar.credentials.store")
+
+    private static let credentialsFile: URL = {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".airflowbar")
+            .appendingPathComponent("credentials.enc")
+    }()
+
+    private static let keyFile: URL = {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".airflowbar")
+            .appendingPathComponent(".credentials.key")
+    }()
+
+    // MARK: - Public API (unchanged interface)
 
     public static func save(credential: AuthCredential, for environmentId: UUID) throws {
-        let data = try JSONEncoder().encode(credential)
-        try save(data: data, for: environmentId)
+        try storeQueue.sync {
+            var store = loadStore()
+            let data = try JSONEncoder().encode(credential)
+            store[environmentId.uuidString] = data.base64EncodedString()
+            try saveStore(store)
+        }
     }
 
     public static func save(data: Data, for environmentId: UUID) throws {
-        let account = environmentId.uuidString
-
-        // Try to update first
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-        ]
-
-        let existing = SecItemCopyMatching(query as CFDictionary, nil)
-        if existing == errSecSuccess {
-            let update: [String: Any] = [kSecValueData as String: data]
-            let status = SecItemUpdate(query as CFDictionary, update as CFDictionary)
-            guard status == errSecSuccess else { throw KeychainError.updateFailed(status) }
-        } else {
-            var newItem = query
-            newItem[kSecValueData as String] = data
-            newItem[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlocked
-
-            let status = SecItemAdd(newItem as CFDictionary, nil)
-            guard status == errSecSuccess else { throw KeychainError.saveFailed(status) }
+        try storeQueue.sync {
+            var store = loadStore()
+            store[environmentId.uuidString] = data.base64EncodedString()
+            try saveStore(store)
         }
     }
 
     public static func load(for environmentId: UUID) -> AuthCredential? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: environmentId.uuidString,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne,
-        ]
-
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-        guard status == errSecSuccess else {
-            return nil
-        }
-        guard let data = result as? Data else {
-            logger.error("Keychain returned non-data credential payload for \(environmentId.uuidString)")
-            return nil
-        }
-        do {
-            return try JSONDecoder().decode(AuthCredential.self, from: data)
-        } catch {
-            logger.error(
-                "Failed to decode keychain credential for \(environmentId.uuidString): \(error.localizedDescription)"
-            )
-            return nil
+        storeQueue.sync {
+            let store = loadStore()
+            guard let b64 = store[environmentId.uuidString],
+                  let data = Data(base64Encoded: b64) else { return nil }
+            return try? JSONDecoder().decode(AuthCredential.self, from: data)
         }
     }
 
     public static func delete(for environmentId: UUID) {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: environmentId.uuidString,
-        ]
-        SecItemDelete(query as CFDictionary)
+        storeQueue.sync {
+            var store = loadStore()
+            store.removeValue(forKey: environmentId.uuidString)
+            try? saveStore(store)
+        }
+    }
+
+    // MARK: - Encrypted Store
+
+    private static func loadStore() -> [String: String] {
+        guard FileManager.default.fileExists(atPath: credentialsFile.path) else { return [:] }
+        do {
+            let encrypted = try Data(contentsOf: credentialsFile)
+            let key = try getOrCreateKey()
+            let box = try AES.GCM.SealedBox(combined: encrypted)
+            let decrypted = try AES.GCM.open(box, using: key)
+            return try JSONDecoder().decode([String: String].self, from: decrypted)
+        } catch {
+            logger.error("Failed to load credentials: \(error.localizedDescription)")
+            return [:]
+        }
+    }
+
+    private static func saveStore(_ store: [String: String]) throws {
+        let dir = credentialsFile.deletingLastPathComponent()
+        if !FileManager.default.fileExists(atPath: dir.path) {
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        }
+        let key = try getOrCreateKey()
+        let data = try JSONEncoder().encode(store)
+        let sealed = try AES.GCM.seal(data, using: key)
+        guard let combined = sealed.combined else {
+            throw KeychainError.dataConversionFailed
+        }
+        try combined.write(to: credentialsFile, options: .atomic)
+
+        // Restrict file permissions to owner only (600)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o600],
+            ofItemAtPath: credentialsFile.path
+        )
+    }
+
+    // MARK: - Encryption Key
+
+    private static func getOrCreateKey() throws -> SymmetricKey {
+        if FileManager.default.fileExists(atPath: keyFile.path) {
+            let keyData = try Data(contentsOf: keyFile)
+            return SymmetricKey(data: keyData)
+        }
+
+        // Generate a new 256-bit key
+        let key = SymmetricKey(size: .bits256)
+        let keyData = key.withUnsafeBytes { Data($0) }
+
+        let dir = keyFile.deletingLastPathComponent()
+        if !FileManager.default.fileExists(atPath: dir.path) {
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        }
+        try keyData.write(to: keyFile, options: .atomic)
+
+        // Restrict key file permissions to owner only (600)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o600],
+            ofItemAtPath: keyFile.path
+        )
+
+        return key
     }
 }
