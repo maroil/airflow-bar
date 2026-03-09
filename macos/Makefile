@@ -32,6 +32,7 @@ app: release
 	@if [ -f Sources/AirflowBar/Resources/AppIcon.icns ]; then \
 		cp Sources/AirflowBar/Resources/AppIcon.icns "$(APP_BUNDLE)/Contents/Resources/AppIcon.icns"; \
 	fi
+	codesign --force --deep --sign - "$(APP_BUNDLE)"
 	@echo "$(APP_BUNDLE) created."
 
 dmg: app
