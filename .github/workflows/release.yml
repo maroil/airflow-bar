@@ -37,8 +37,12 @@ jobs:
           generate_release_notes: true
 
       - name: Update Homebrew Cask
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
           cd ..
+          git clone https://x-access-token:${GH_TOKEN}@github.com/maroil/homebrew-airflow-bar.git
+          cd homebrew-airflow-bar
           sed -i '' \
             -e 's/version ".*"/version "${{ steps.version.outputs.VERSION }}"/' \
             -e 's/sha256 ".*"/sha256 "${{ steps.sha.outputs.SHA256 }}"/' \
@@ -47,4 +51,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Casks/airflow-bar.rb
           git commit -m "Update cask to ${{ steps.version.outputs.VERSION }}"
-          git push origin HEAD:main
+          git push origin main

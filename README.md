@@ -37,7 +37,8 @@
 ### Homebrew
 
 ```bash
-brew install maroil/airflow-bar/airflow-bar
+brew tap maroil/airflow-bar
+brew install --cask airflow-bar
 ```
 
 ### Download
@@ -167,7 +168,6 @@ macos/
 └── docker-compose.yaml         # Local Airflow stack
 
 website/                        # Astro landing page
-Casks/                          # Homebrew cask formula
 .github/workflows/              # CI and Release automation
 ```
 
