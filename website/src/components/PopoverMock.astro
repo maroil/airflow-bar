@@ -1,0 +1,238 @@
+---
+/**
+ * Shared macOS popover mock — the exact app UI as a hero element.
+ * Used across all variants.
+ */
+---
+
+<div class="popover">
+  <div class="pop-header">
+    <div class="pop-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
+      </svg>
+    </div>
+    <div>
+      <div class="pop-title">AirflowBar</div>
+      <div class="pop-env">Production</div>
+    </div>
+    <div class="pop-health">
+      <svg width="8" height="8" viewBox="0 0 8 8" fill="#22c55e"><circle cx="4" cy="4" r="3"/></svg>
+      Healthy
+    </div>
+  </div>
+
+  <div class="pop-summary">
+    <span class="pop-stat fail">
+      <svg width="8" height="8" viewBox="0 0 8 8"><path d="M2 2l4 4M6 2l-4 4" stroke="#ef4444" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+      1
+    </span>
+    <span class="pop-stat run">
+      <svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 1a3 3 0 1 1 0 6 3 3 0 0 1 0-6" stroke="#3b82f6" stroke-width="1.2" fill="none" stroke-dasharray="4 2"/></svg>
+      2
+    </span>
+    <span class="pop-stat ok">
+      <svg width="8" height="8" viewBox="0 0 8 8"><path d="M1.5 4.5l2 2 3-4" stroke="#22c55e" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      14
+    </span>
+    <span class="pop-stat muted">17 DAGs</span>
+  </div>
+
+  <div class="pop-row">
+    <div class="pop-dot red">
+      <svg width="8" height="8" viewBox="0 0 8 8"><path d="M2 2l4 4M6 2l-4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+    </div>
+    <div class="pop-dag-info">
+      <div class="pop-dag-name">etl_payments_daily</div>
+      <div class="pop-dag-state">Failed &middot; 12m ago</div>
+    </div>
+    <div class="pop-sparkline">
+      <div class="spark g" style="height:10px"></div>
+      <div class="spark g" style="height:10px"></div>
+      <div class="spark g" style="height:10px"></div>
+      <div class="spark r" style="height:14px"></div>
+    </div>
+  </div>
+
+  <div class="pop-row">
+    <div class="pop-dot blue">
+      <svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 1a3 3 0 1 1 0 6 3 3 0 0 1 0-6" stroke="currentColor" stroke-width="1.2" fill="none" stroke-dasharray="4 2"/></svg>
+    </div>
+    <div class="pop-dag-info">
+      <div class="pop-dag-name">ml_feature_pipeline</div>
+      <div class="pop-dag-state">Running &middot; 3m ago</div>
+    </div>
+    <div class="pop-sparkline">
+      <div class="spark g" style="height:10px"></div>
+      <div class="spark g" style="height:10px"></div>
+      <div class="spark b" style="height:8px"></div>
+      <div class="spark b" style="height:8px"></div>
+    </div>
+  </div>
+
+  <div class="pop-row">
+    <div class="pop-dot blue">
+      <svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 1a3 3 0 1 1 0 6 3 3 0 0 1 0-6" stroke="currentColor" stroke-width="1.2" fill="none" stroke-dasharray="4 2"/></svg>
+    </div>
+    <div class="pop-dag-info">
+      <div class="pop-dag-name">sync_warehouse_hourly</div>
+      <div class="pop-dag-state">Running &middot; 1m ago</div>
+    </div>
+    <div class="pop-sparkline">
+      <div class="spark g" style="height:10px"></div>
+      <div class="spark g" style="height:10px"></div>
+      <div class="spark g" style="height:10px"></div>
+      <div class="spark b" style="height:8px"></div>
+    </div>
+  </div>
+
+  <div class="pop-row">
+    <div class="pop-dot green">
+      <svg width="8" height="8" viewBox="0 0 8 8"><path d="M1.5 4.5l2 2 3-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="pop-dag-info">
+      <div class="pop-dag-name">dbt_transform_core</div>
+      <div class="pop-dag-state">Success &middot; 22m ago</div>
+    </div>
+    <div class="pop-sparkline">
+      <div class="spark g" style="height:10px"></div>
+      <div class="spark g" style="height:10px"></div>
+      <div class="spark g" style="height:10px"></div>
+      <div class="spark g" style="height:10px"></div>
+    </div>
+  </div>
+
+  <div class="pop-row">
+    <div class="pop-dot green">
+      <svg width="8" height="8" viewBox="0 0 8 8"><path d="M1.5 4.5l2 2 3-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="pop-dag-info">
+      <div class="pop-dag-name">analytics_user_events</div>
+      <div class="pop-dag-state">Success &middot; 45m ago</div>
+    </div>
+    <div class="pop-sparkline">
+      <div class="spark r" style="height:14px"></div>
+      <div class="spark g" style="height:10px"></div>
+      <div class="spark g" style="height:10px"></div>
+      <div class="spark g" style="height:10px"></div>
+    </div>
+  </div>
+
+  <div class="pop-row">
+    <div class="pop-dot gray">
+      <svg width="6" height="8" viewBox="0 0 6 8"><rect x="1" y="1" width="1.5" height="6" rx="0.5" fill="currentColor"/><rect x="3.5" y="1" width="1.5" height="6" rx="0.5" fill="currentColor"/></svg>
+    </div>
+    <div class="pop-dag-info">
+      <div class="pop-dag-name">legacy_csv_import</div>
+      <div class="pop-dag-state">Paused</div>
+    </div>
+    <div class="pop-sparkline">
+      <div class="spark gr" style="height:4px"></div>
+      <div class="spark gr" style="height:4px"></div>
+      <div class="spark gr" style="height:4px"></div>
+      <div class="spark gr" style="height:4px"></div>
+    </div>
+  </div>
+
+  <div class="pop-footer">
+    <span>2m ago</span>
+  </div>
+</div>
+
+<style>
+  .popover {
+    width: 340px;
+    background: rgba(28, 28, 30, 0.85);
+    backdrop-filter: blur(40px) saturate(1.5);
+    -webkit-backdrop-filter: blur(40px) saturate(1.5);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow:
+      0 25px 60px rgba(0,0,0,0.5),
+      0 0 0 0.5px rgba(255,255,255,0.05) inset;
+    overflow: hidden;
+    font-family: var(--sans, -apple-system, sans-serif);
+  }
+
+  .pop-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .pop-icon {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #3b82f6, #06b6d4);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .pop-title { font-size: 12px; font-weight: 600; color: #f4f4f5; flex: 1; }
+  .pop-env { font-size: 9px; color: #71717a; }
+
+  .pop-health {
+    font-size: 9px; font-weight: 500; color: #22c55e;
+    background: rgba(34,197,94,0.1);
+    padding: 2px 8px; border-radius: 10px;
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  .pop-summary {
+    display: flex; gap: 12px;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 10px;
+    font-family: var(--mono, monospace);
+  }
+
+  .pop-stat { display: flex; align-items: center; gap: 3px; }
+  .pop-stat.fail { color: #ef4444; }
+  .pop-stat.run { color: #3b82f6; }
+  .pop-stat.ok { color: #22c55e; }
+  .pop-stat.muted { color: #52525b; margin-left: auto; }
+
+  .pop-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    transition: background 0.15s;
+  }
+  .pop-row:last-of-type { border-bottom: none; }
+  .pop-row:hover { background: rgba(255,255,255,0.03); }
+
+  .pop-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; flex-shrink: 0;
+  }
+  .pop-dot.green { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .pop-dot.red { background: rgba(239,68,68,0.15); color: #ef4444; }
+  .pop-dot.blue { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .pop-dot.gray { background: rgba(113,113,122,0.1); color: #52525b; }
+
+  .pop-dag-info { flex: 1; min-width: 0; }
+  .pop-dag-name {
+    font-family: var(--mono, monospace);
+    font-size: 11px; font-weight: 500; color: #e4e4e7;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pop-dag-state { font-size: 9px; color: #71717a; margin-top: 1px; }
+
+  .pop-sparkline { display: flex; gap: 2px; align-items: flex-end; height: 14px; }
+  .spark { width: 3px; border-radius: 1px; }
+  .spark.g { background: #22c55e; }
+  .spark.r { background: #ef4444; }
+  .spark.b { background: #3b82f6; }
+  .spark.gr { background: #3f3f46; }
+
+  .pop-footer {
+    display: flex; align-items: center;
+    padding: 8px 14px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 9px; color: #52525b;
+  }
+  .pop-footer span { margin-right: auto; }
+</style>

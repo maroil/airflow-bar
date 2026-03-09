@@ -1,0 +1,21 @@
+.DS_Store
+.env
+.claude/
+.astro/
+
+# macOS app
+macos/.build
+macos/Packages
+macos/*.app
+macos/*.dmg
+xcuserdata/
+DerivedData/
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+.swiftpm/xcode/
+*.xcodeproj/
+
+# Website
+website/.astro/
+website/node_modules/
+website/dist/
+node_modules/
